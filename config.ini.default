@@ -1,2 +1,9 @@
 [hoggy]
-logfile = "hoggy.log"
+logfile = hoggy.log
+
+[irc]
+nick = 
+password = 
+channel = 
+host = dickson.freenode.net
+port = 6667
