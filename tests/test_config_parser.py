@@ -1,4 +1,4 @@
-import unittest, ConfigParser
+import unittest, ConfigParser, os
 from mock import Mock
 from Hoggy2.utils import get_config
 
@@ -12,7 +12,7 @@ class TestConfig(unittest.TestCase):
     def test_inner_exception_raised_on_no_file_parameter(self):
         parser = Mock(ConfigParser.RawConfigParser)
         config = get_config(parser)
-        parser.read.assert_called_with("config.ini")
+        assert parser.read.called
 
     def test_config_reads_from_file_parameter(self):
         parser = Mock(ConfigParser.RawConfigParser)
