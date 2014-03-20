@@ -1,11 +1,11 @@
 import unittest, ConfigParser
 from mock import Mock
-from ..utils import get_config
+from Hoggy2.utils import get_config
 
 class TestConfig(unittest.TestCase):
     def setup_method(self, method):
         pass
-        
+
     def teardown_method(self, method):
         pass
 

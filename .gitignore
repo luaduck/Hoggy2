@@ -37,3 +37,4 @@ nosetests.xml
 
 # Application specific
 config.ini
+*.log
