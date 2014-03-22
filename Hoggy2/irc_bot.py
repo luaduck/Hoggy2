@@ -1,6 +1,7 @@
 from twisted.words.protocols import irc
 from twisted.internet import protocol, reactor
-import time
+import time, re
+import Hoggy2.core_actions as core
 
 class HoggyBot(irc.IRCClient):
     def __init__(self, config, log, *args, **kwargs):
@@ -8,6 +9,9 @@ class HoggyBot(irc.IRCClient):
         self.password = config.get("irc", "password")
         self.log = log
         self.config = config
+
+        # assign the quote action to be !<name_of_bot>
+        core.Action.actions["!%s" % config.get('irc','nick')] = core.hoggy
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
@@ -17,7 +21,6 @@ class HoggyBot(irc.IRCClient):
         irc.IRCClient.connectionLost(self, reason)
         self.log.info("Disconnected at %s" % time.asctime(time.localtime(time.time())))
 
-
     # callbacks for events
     def signedOn(self):
         """Called when bot has succesfully signed on to server."""
@@ -25,22 +28,58 @@ class HoggyBot(irc.IRCClient):
         self.join(self.config.get("irc", "channel"))
 
     def joined(self, channel):
-        pass
+        if self.password:
+            self.log.debug("Logging in with password.")
+            self.msg('NickServ', 'IDENTIFY %s' % self.password)
 
     def privmsg(self, user, channel, msg):
         """This will get called when the bot receives a message."""
         user = user.split('!', 1)[0]
 
-        # Check to see if they're sending me a private message
-        if channel == self.nickname:
-            msg = "It isn't nice to whisper!  Play nice with the group."
-            self.msg(user, msg)
-            return
+        # lazy backwards compatibility with HOggy1
+        message = msg
 
-        # Otherwise check to see if it is a message directed at me
-        if msg.startswith(self.nickname + ":"):
-            msg = "%s: I am a log bot" % user
-            self.msg(channel, msg)
+        response = None
+
+        # This is a hoggy action, supposedly.  Lets split it up into command + args
+        if msg.startswith('!'):
+            command_array = msg.split(' ')
+            command = command_array[0]
+            args = command_array[1:]
+
+            # Make an instance of the requested action's class
+            # Only reason I'm doing this instead of the old hoggy's 
+            # classactions is because 2.7 can't do abstract classactions
+            try:
+                response = core.Action.actions.get(command)().execute(self, user, channel, args)
+            except TypeError, ex:
+                self.log.error(str(ex))
+                response = "I don't know the command \"%s\". You can add it though! http://github.com/jeremysmitherman/Hoggy2" % command
+            except core.ActionException:
+                response = str(ex)
+            except Exception, ex:
+                response = "Hoozin'ed it up: unexpected exception: {0}".format(str(ex))
+            
+        else:
+            if ' r/' in message or '/r/' in message:
+                obj = re.search(r'[/]?r/[^\s\n]*',message)
+                sub = obj.group()
+                if sub.startswith('/'):
+                    sub = sub[1:]
+                response = "http://reddit.com/%s" % sub
+
+            if  ' u/' in message or '/u/' in message:
+                obj = re.search(r'[/]?u/[^\s\n]*',message)
+                sub = obj.group()
+                if sub.startswith('/'):
+                    sub = sub[1:]
+                response = "http://reddit.com/%s" % sub
+
+        if response is not None:
+            if channel == self.nickname:
+                self.msg(user, response)
+            else:
+                self.msg(channel, response)
 
     def action(self, user, channel, msg):
         """This will get called when the bot sees someone do an action."""
