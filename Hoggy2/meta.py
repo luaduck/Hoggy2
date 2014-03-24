@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from Hoggy2.app import config
+from Hoggy2.app_irc import config
 
 if config.get('hoggy', 'dbtype') == 'mysql':
     MSQLUname = config.get('hoggy', 'mysqlusername')
