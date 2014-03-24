@@ -3,6 +3,35 @@ from twisted.internet import protocol, reactor
 import time, re
 import Hoggy2.core_actions as core
 
+class GrabberException(Exception):
+    pass
+
+class Grabber(object):
+    buffer = []
+
+    def stack(self, user, line):
+        self.buffer.append((user, line))
+        while len(self.buffer) > 100:
+            del self.buffer[0]
+
+    def grab(self, user, lines=1):
+        quote_lines = []
+        for x in reversed(self.buffer):
+            if len(quote_lines) == lines:
+                break
+
+            if user == x[0]:
+                quote_lines.append(x[1])
+
+        if len(quote_lines):
+            quote = ""
+            quote_lines.reverse()
+            quote += " ".join(quote_lines)
+            quote += " --" + user
+            return quote
+        else:
+            raise GrabberException('No quotes found for user in last 100 lines.')
+
 class HoggyBot(irc.IRCClient):
     lineRate = 1
     
@@ -11,6 +40,7 @@ class HoggyBot(irc.IRCClient):
         self.password = config.get("irc", "password")
         self.log = log
         self.config = config
+        self.grabber = Grabber()
 
         # assign the quote action to be !<name_of_bot>
         core.Action.actions["!%s" % config.get('irc','nick')] = core.hoggy
@@ -76,6 +106,8 @@ class HoggyBot(irc.IRCClient):
                 if sub.startswith('/'):
                     sub = sub[1:]
                 response = "http://reddit.com/%s" % sub
+
+        self.grabber.stack(user, msg)
 
         if response is not None:
             if channel == self.nickname:

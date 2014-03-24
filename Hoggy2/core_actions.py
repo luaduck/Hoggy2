@@ -300,6 +300,33 @@ class ron(Action):
             ]
             return "%s" % (choice(messages))
 
+class grab(Action):
+    def shortdesc(self):
+        return "Grab the last n lines of a specifc user and create a quote"
+
+    def longdesc(self):
+        return "Usage: !grab <user> <number of lines>  number of lines defaults to 1"
+
+    def execute(self,bot, user, channel, args):
+        if len(args) == 1:
+            num_lines = 1
+        else:
+            try:
+                num_lines = int(args[1])
+            except:
+                num_lines = 0
+
+        if num_lines < 1:
+            return "{0}... Don't be a dipshit.".format(kwargs['user'])
+
+        if args[0].lower() == 'hoggy':
+            return "Got no time to be playing with myself..."
+
+        quote = bot.grabber.grab(args[0], num_lines)
+        h = hoggy()
+        return h.execute(bot, user, channel, ["add", quote])
+
+
 Action.actions = {
     "!ping": ping,
     "!ron": ron,
