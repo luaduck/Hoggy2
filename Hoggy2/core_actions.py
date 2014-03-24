@@ -1,8 +1,13 @@
 from abc import ABCMeta, abstractproperty, abstractmethod
 from random import choice
-import random
-import requests, praw
-import Hoggy2.models as m
+import random, time, requests, praw, re
+from time import gmtime
+import Hoggy2.models.time as time_model
+import Hoggy2.models.quote as quote
+
+def get_adjusted_time(adjustment):
+    adj = gmtime(time.time()+adjustment*60*60)
+    return time.strftime("%a %H:%M", adj)
 
 class ActionException(Exception):
     def __init__(self, message):
@@ -31,8 +36,50 @@ class ping(Action):
     def longdesc(self):
         return "Sometimes he likes to ignore people, or just straight up go away."
 
-    def execute(cls, bot, user, channel, args):
+    def execute(self, bot, user, channel, args):
         return choice(["Hoozin'd it up.  Naw Just kidding. Pong.", "pong", "pang", "poong", "ping?", "pop", "pa-pong!", "kill yourse- sorry, pong", "ta-ping!", "Wasn't that Mulan's fake name?"])
+
+class settime(Action):
+    def shortdesc(self):
+        return "Set your timezone"
+    
+    wanted = "!settime [UTC|GMT][+|-]hours"
+
+    def longdesc(self):
+        return wanted
+
+    def execute(self, bot, user, channel, args):
+        time = " ".join(args)
+
+        if not time or not user:
+            return
+        reg = re.compile("^(ZULU|GMT|UTC)(\+|-)[0-9]{1,2}[:|\.]{0,1}[0-9]{0,2}$")
+        if not reg.match(time):
+            return "Hey, try the format: {0}".format(settime.wanted)
+        dir = 1
+        if '-' in time:
+            dir = -1
+        time = time[4:]
+        if ':' in time:
+            parts = time.split(':')
+            if len(parts[1]) != 2:
+                return "Two digits for minutes, thank you very muchly"
+            hours = int(parts[0]) + (float(parts[1]) / 60.0)
+        elif '.' in time:
+            hours = float(time)
+        else:
+            hours = int(time)
+        user = user.lower()
+        hours *= dir
+
+        time_to_change = time_model.Time.get_by_name(user)
+        if not time_to_change:
+            time_to_change = time_model.Time()
+            time_to_change.name = user
+
+        time_to_change.time = hours
+        time_to_change.save()
+        return "Your clock is now set at {0}".format(get_adjusted_time(hours))
 
 class when(Action):
     def shortdesc(self):
@@ -44,16 +91,15 @@ class when(Action):
     def execute(self, bot, user, channel, args):
         target = args[0]
         low = target.lower()
-        return low
 
         if low == "hoggy":
             return "I am beyond both time and space, mortal"
 
-        #time =  times.select().where(times.c.name==low).execute().fetchone()
-        #if not time:
-        #    return "They don't appear to have set a time yet, sorry"
-        ##time = get_adjusted_time(time.time)
-        #return "The local time in {0}-land is: {1}".format(target, time)
+        return_time = time_model.Time.get_by_name(target)
+        if not return_time:
+            raise ActionException("They don't appear to have set a time yet, sorry")
+        return_time = get_adjusted_time(return_time.time)
+        return "The local time in {0}-land is: {1}".format(target, return_time)
 
 class urbandictionary(Action):
     def shortdesc(self):
@@ -165,14 +211,14 @@ class hoggy(Action):
         if len(args):
             command = args[0]
             if command.isdigit():
-                quote = m.quote.Quote.get_quote(id=command)
-                if quote is None:
+                return_quote = quote.Quote.get_quote(id=command)
+                if return_quote is None:
                     return "Nothing found for %s" % command
-                return "%s (%s)" % (quote.body, quote.id)
+                return "%s (%s)" % (return_quote.body, return_quote.id)
 
             if command == "add":
-                quote = " ".join(args[1:])
-                id = m.quote.Quote.add_quote(quote)
+                return_quote = " ".join(args[1:])
+                id = quote.Quote.add_quote(quote)
                 return "Added %s (#%s)" % (quote, id)
 
             if command == "search":
@@ -184,41 +230,16 @@ class hoggy(Action):
                 if not id.isdigit():
                     return "Usage: !%s remove <id>" % bot.nickname
 
-                quote = m.quote.Quote.get_quote(id=id)
+                delete_quote = quote.Quote.get_quote(id=id)
                 try:
-                    quote.delete()
-                    return "Removed %s (#%s)" % (quote.body, quote.id)
+                    delete_quote.delete()
+                    return "Removed %s (#%s)" % (delete_quote.body, delete_quote.id)
                 except:
                     raise ActionException("Error removing quote.")
 
         else:
-            quote = m.quote.Quote.get_quote()
-            return "%s (%s)" % (quote.body, quote.id)
-
-class grab(Action):
-    def shortdesc(self):
-        return "Grab the last n lines of a specifc user and create a quote"
-
-    def longdesc(self):
-        return "Usage: !grab <user> <number of lines>  number of lines defaults to 1"
-
-    def execute(self, bot, user, channel, args):
-        if len(args) == 1:
-            num_lines = 1
-        else:
-            try:
-                num_lines = int(args[1])
-            except:
-                num_lines = 0
-
-        if num_lines < 1:
-            return "{0}... Don't be a dipshit.".format(user)
-
-        if args[0].lower() == 'hoggy':
-            return "Got no time to be playing with myself..."
-
-        #quote = kwargs['client'].grabber.grab(args[0], num_lines)
-        #return hoggy.execute('add', quote)
+            return_quote = quote.Quote.get_quote()
+            return "%s (%s)" % (return_quote.body, return_quote.id)
 
 class hug(Action):
     def shortdesc(self):
@@ -344,7 +365,8 @@ class grab(Action):
 Action.actions = {
     "!ping": ping,
     "!ron": ron,
-    #"!when": when,
+    "!when": when,
+    "!settime": settime,
     "!ud": urbandictionary,
     #"!new": new,
     "!lightning": lightning,
