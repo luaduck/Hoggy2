@@ -95,7 +95,7 @@ class when(Action):
         if low == "hoggy":
             return "I am beyond both time and space, mortal"
 
-        return_time = time_model.Time.get_by_name(target)
+        return_time = time_model.Time.get_by_name(low)
         if not return_time:
             raise ActionException("They don't appear to have set a time yet, sorry")
         return_time = get_adjusted_time(return_time.time)
