@@ -87,7 +87,7 @@ class HoggyBot(irc.IRCClient):
             except TypeError, ex:
                 self.log.error(str(ex))
                 response = "I don't know the command \"%s\". You can add it though! http://github.com/jeremysmitherman/Hoggy2" % command
-            except core.ActionException:
+            except core.ActionException, ex:
                 response = str(ex)
             except Exception, ex:
                 response = "Hoozin'ed it up: unexpected exception: {0}".format(str(ex))
