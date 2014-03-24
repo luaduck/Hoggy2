@@ -4,6 +4,8 @@ import time, re
 import Hoggy2.core_actions as core
 
 class HoggyBot(irc.IRCClient):
+    lineRate = 1
+    
     def __init__(self, config, log, *args, **kwargs):
         self.nickname = config.get("irc", "nick")
         self.password = config.get("irc", "password")
