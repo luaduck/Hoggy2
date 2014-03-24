@@ -1,5 +1,16 @@
 [hoggy]
 logfile = hoggy.log
+# dbtype can be sqlite or mysql
+dbtype=sqlite
+# if you're using sqlite, put your intended filename in here
+file=hoggit.sqlite
+# here's all the stuff for mysql
+mysqlusername=
+mysqlpassword=
+mysqlhost=localhost
+mysqlport=3306
+mysqldatabase=hoggy
+search_url =
 
 [irc]
 nick = 
@@ -7,3 +18,8 @@ password =
 channel = 
 host = dickson.freenode.net
 port = 6667
+
+[reddit]
+subreddit =
+username =
+password =

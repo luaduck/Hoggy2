@@ -31,7 +31,8 @@ config = {
     ],
     'entry_points': {
         'console_scripts':[
-            'Hoggy2_start = Hoggy2.app:main'
+            'Hoggy2_irc = Hoggy2.app_irc:main',
+            'Hoggy2_web = Hoggy2.app_web:main'
         ]
     }
 

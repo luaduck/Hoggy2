@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 from random import choice
 import random
 import requests, praw
+import Hoggy2.models as m
 
 class ActionException(Exception):
     def __init__(self, message):
@@ -161,7 +162,24 @@ class hoggy(Action):
         return "Display or add quotes"
 
     def execute(self, bot, user, channel, args):
-        return args[0]
+        if len(args):
+            command = args[0]
+            if command.isdigit():
+                quote = m.quote.Quote.get_quote(id=command)
+                return "%s (%s)" % (quote.body, quote.id)
+
+            if command == "add":
+                quote = " ".join(args[1:])
+                id = m.quote.Quote.add_quote(quote)
+                return "Added %s (#%s)" % (quote, id)
+
+            if command == "search":
+                terms = " ".join(args[1:])
+                return bot.config.get('hoggy', 'search_url') + "?query=%s" % terms
+
+        else:
+            quote = m.quote.Quote.get_quote()
+            return "%s (%s)" % (quote.body, quote.id)
 
 class grab(Action):
     def shortdesc(self):
@@ -254,9 +272,9 @@ class choose(Action):
 
 Action.actions = {
     "!ping": ping,
-    "!when": when,
+    #"!when": when,
     "!ud": urbandictionary,
-    "!new": new,
+    #"!new": new,
     "!lightning": lightning,
     "!no": no,
     "!blame": blame,

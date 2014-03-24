@@ -77,9 +77,9 @@ class HoggyBot(irc.IRCClient):
 
         if response is not None:
             if channel == self.nickname:
-                self.msg(user, response)
+                self.msg(user, response.encode('utf-8'))
             else:
-                self.msg(channel, response)
+                self.msg(channel, response.encode('utf-8'))
 
     def action(self, user, channel, msg):
         """This will get called when the bot sees someone do an action."""
