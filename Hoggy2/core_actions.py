@@ -166,6 +166,8 @@ class hoggy(Action):
             command = args[0]
             if command.isdigit():
                 quote = m.quote.Quote.get_quote(id=command)
+                if quote is None:
+                    return "Nothing found for %s" % command
                 return "%s (%s)" % (quote.body, quote.id)
 
             if command == "add":
@@ -176,6 +178,18 @@ class hoggy(Action):
             if command == "search":
                 terms = " ".join(args[1:])
                 return bot.config.get('hoggy', 'search_url') + "?query=%s" % terms
+
+            if command == "remove":
+                id = args[1]
+                if not id.isdigit():
+                    return "Usage: !%s remove <id>" % bot.nickname
+
+                quote = m.quote.Quote.get_quote(id=id)
+                try:
+                    quote.delete()
+                    return "Removed %s (#%s)" % (quote.body, quote.id)
+                except:
+                    raise ActionException("Error removing quote.")
 
         else:
             quote = m.quote.Quote.get_quote()
@@ -317,7 +331,7 @@ class grab(Action):
                 num_lines = 0
 
         if num_lines < 1:
-            return "{0}... Don't be a dipshit.".format(kwargs['user'])
+            return "{0}... Don't be a dipshit.".format(user)
 
         if args[0].lower() == 'hoggy':
             return "Got no time to be playing with myself..."

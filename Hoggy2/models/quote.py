@@ -21,3 +21,7 @@ class Quote(meta.base):
         meta.session.commit()
 
         return new_quote.id
+
+    def delete(self):
+        meta.session.delete(self)
+        meta.session.commit()
