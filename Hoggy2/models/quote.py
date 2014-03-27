@@ -9,19 +9,31 @@ class Quote(meta.base):
 
     @classmethod
     def get_quote(cls, id = None):
-        if id is None:
-            id = randint(1,meta.session.query(cls).count())
-        return meta.session.query(cls).get(id)
+        try:
+            if id is None:
+                id = randint(1,meta.session.query(cls).count())
+            return meta.session.query(cls).get(id)
+        except:
+            meta.session.rollback()
+            raise
 
     @classmethod
     def add_quote(cls, quote):
-        new_quote = cls()
-        new_quote.body = quote
-        meta.session.add(new_quote)
-        meta.session.commit()
+        try:
+            new_quote = cls()
+            new_quote.body = quote
+            meta.session.add(new_quote)
+            meta.session.commit()
 
-        return new_quote.id
+            return new_quote.id
+        except:
+            meta.session.rollback()
+            raise
 
     def delete(self):
-        meta.session.delete(self)
-        meta.session.commit()
+        try:
+            meta.session.delete(self)
+            meta.session.commit()
+        except:
+            meta.session.rollback()
+            raise

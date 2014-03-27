@@ -11,8 +11,13 @@ class Time(meta.base):
         try:
             return meta.session.query(cls).filter_by(name=name).one()
         except:
+            meta.session.rollback()
             return None
 
     def save(self):
-        meta.session.add(self)
-        meta.session.commit()
+        try:
+            meta.session.add(self)
+            meta.session.commit()
+        except:
+            meta.session.rollback()
+            raise

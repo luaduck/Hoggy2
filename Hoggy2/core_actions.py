@@ -193,7 +193,7 @@ class eject(Action):
         return "Leave the room in style."
 
     def execute(self, bot, user, channel, args):
-        client.kick('hoggit', user, 'Ejecting!')
+        bot.kick('hoggit', user, 'Ejecting!')
         return "EJECT! EJECT! EJECT! {0} punched out!".format(user)
 
 class hoggy(Action):
