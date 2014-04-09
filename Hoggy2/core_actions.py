@@ -379,4 +379,4 @@ Action.actions = {
     "!choose": choose
 }
 
-#dict(chain.from_iterable(d.iteritems() for d in [a,b]))
+import Hoggy2.action_plugins
