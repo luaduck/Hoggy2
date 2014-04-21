@@ -56,14 +56,14 @@ class thanks(Action):
     return "Like this ever gets any use"
     
   def execute(self, bot, user, channel, args):
-	if (len(args)):
-            target = args[0]
-        else:
-            target = None
+    if (len(args)):
+        target = args[0]
+    else:
+        target = None
     if target is not None:
-            return "What about me?"
-        else:
-            return "No problem, %s" % (user)
+        return "What about me?"
+    else:
+        return "No problem, %s" % (user)
     
 Action.actions["!thanks"] = thanks
 
