@@ -29,7 +29,7 @@ class guns(Action):
             message += "%s screwed up their attack run, but managed to pull out." % (user)
         else: 
             message += "%s ignored the VMU's 'PULL UP' and smashed into %s" % (user, target)
-            client.kick('hoggit', user, 'Is no more.')
+            bot.kick('hoggit', user, 'Is no more.')
     except Exception, ex:
         print ex
         message = "%s screwed up their gun run, but managed to pull out. What a wimp." % (user)
@@ -90,7 +90,7 @@ class pickle(Action):
         message = messages[random.randint(0,2)]
         return user + ' ' + message
     elif target.lower() == user.lower():
-        client.kick(channel, user, 'Self-immolation is not the way forward')
+        bot.kick(channel, user, 'Self-immolation is not the way forward')
         return "%s rolls 180 degrees and drops his bombs... before realising what a silly mistake he made" % user
     bombs = [
         'Mk. 82',
@@ -139,14 +139,17 @@ class wire(Action):
     else:
         if random.randint(0,100) < 2:
             # lol this is probably OP
-            bot.kick(channel, user, 'You got Vikhir\'d, congrats!')
+            bot.kick(channel, target, 'You got Vikhir\'d, congrats!')
             return '%s actually hit %s using some kind of divine intervention!' % (user, target)
         else:
             messages = [
                 "but they crashed for no good reason",
-                "it plowed into the ground",
-                "it overshot the target",
-                "it undershot the target",
+                "but it plowed into the ground",
+                "but it overshot the target",
+                "but it undershot the target",
+                "but it veered to the right",
+                "but it veered to the left",
+                "but it hit an orphanage instead",
                 "but their laser burned out",
                 "however their tail fell off",
                 "but their autopilot flipped out",
@@ -154,6 +157,6 @@ class wire(Action):
                 "and it hit the target! .... nah",
                 "but it fell in love with a passing Hind and they embraced awkwardly"
             ]
-            return "%s launched a Vikhir at %s, %s." % (user, target, choice(messages))
+            return "%s launches a Vikhir at %s, %s." % (user, target, choice(messages))
     
 Action.actions["!wire"] = wire
